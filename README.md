@@ -26,6 +26,6 @@ python record.py -i
 midで、使用するマイクロホンのIndexを選択する。
 
 ```
-python record.py -f <file_name> -mid <mic_id> -t <sec>
-python record.py -f ./data/test.wav -mid 1 -t 5
+python ./app/record.py -f <file_name> -mid <mic_id> -t <sec>
+python ./app/record.py -f ./data/test.wav -mid 1 -t 5
 ```

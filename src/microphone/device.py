@@ -4,7 +4,6 @@ import pyaudio
 import numpy as np
 import time
 from omegaconf import OmegaConf
-from dataclasses import dataclass
 
 # パスを通す
 module_path = pathlib.Path(__file__).parent.parent.parent.resolve()
@@ -14,11 +13,7 @@ if module_path not in sys.path:
 from utils import get_logger
 logger = get_logger()
 
-@dataclass
-class RecordOutputStruct():
-    sample_rate: int
-    sample_width: int
-    ch_num: int
+from src.format.output import AudioOutputStruct
 
 class AudioDevice():
     """
@@ -75,11 +70,7 @@ class AudioDevice():
         input_channel_num = int(device_info['maxInputChannels'])
         sample_rate = int(device_info['defaultSampleRate'])
 
-        record_output = OmegaConf.structured(RecordOutputStruct(
-            sample_rate=sample_rate,
-            sample_width=sample_width,
-            ch_num=input_channel_num
-        ))
+
 
         logger.info(f"Record Device: {mic_name}, CH num: {input_channel_num}, Sample rate: {sample_rate}")
         
@@ -119,6 +110,13 @@ class AudioDevice():
         stream.close()
         self._pAudio.terminate()
         logger.info(f"Recording stop! tims is {len(self._record_list)/sample_rate/input_channel_num}")
+      
+        record_output = OmegaConf.structured(AudioOutputStruct(
+            sample_rate=sample_rate,
+            sample_width=sample_width,
+            ch_num=input_channel_num,
+            sample_num=len(self._record_list)
+        ))
 
         return self._record_list, record_output
         
@@ -130,7 +128,7 @@ class AudioDevice():
     
 if __name__ == "__main__":
     from utils import Config
-    from src.audio.wave import WaveProcessing
+    from src.audio.processing import WaveProcessing
     conf = Config.get_cnf()
     logger.info(conf)
 

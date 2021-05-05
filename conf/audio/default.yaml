@@ -1,4 +1,17 @@
 # @package _group_
 
-freq: 16000
-mic_num: 8
+stft:
+  window: hann  
+  nperseg: 512
+  noverlap: 256
+
+# sound source
+ss:
+  distance: 1 #m
+  interval_dir: 5
+
+mic:
+  distance: 0.025 #m
+  num: 8
+
+assign_dir: 45

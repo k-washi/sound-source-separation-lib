@@ -1,11 +1,15 @@
 import sys
-import os
+import pathlib
 import argparse
 
-from src.audio.wave import WaveProcessing
+module_path = pathlib.Path(__file__).parent.parent.parent.resolve()
+if module_path not in sys.path:
+    sys.path.append(str(module_path))
+
+from src.audio.processing import WaveProcessing
 from src.microphone.device import AudioDevice
 
-from utils.logger import get_logger
+from utils import get_logger, wave_path_check
 logger = get_logger()
 
 parser = argparse.ArgumentParser(description='Audio record')
@@ -16,24 +20,6 @@ parser.add_argument('-mid', '--mic_id', default=0, type=int, help='microphone de
 parser.add_argument('-t', '--record_time', default=2, type=float, help='record time')
 parser.add_argument('-i', '--mic_info', action='store_true', help='display mic device info.')
 
-
-AUDIO_EXT = ["wav", "mp3"]
-
-def wave_path_check(file_path):
-    # ディレクトリのチェック
-    dir_name = os.path.dirname(file_path)
-    if not os.path.isdir(dir_name):
-        logger.error(f'Dir: {dir_name} is not exist.')
-        return False
-
-    # extのチェック
-    _, ext = os.path.splitext(file_path)
-    ext = ext.replace(".", "")
-    if ext not in AUDIO_EXT:
-        logger.error(f'ext: {ext} is not audio extension.')
-        return False
-    
-    return True
 def main():
     args = parser.parse_args()
     mic_info_display = args.mic_info
