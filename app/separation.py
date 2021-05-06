@@ -43,6 +43,11 @@ def main():
     if not ok:
         logger.error(f"fail record... by args setting.")
         sys.exit(-1)
+
+    if len(ss_azimuth) == 0:
+        logger.error(f"Should set sound source azimuths by -d.")
+        sys.exit(-1)
+        
     wave_proc = WaveProcessing()
     
 
@@ -59,8 +64,8 @@ def main():
     # 音源分離
     if sss_mode == 0:
         # ビームフォーマ
-        from src.sss.beamformer import Beamforming
-        ss_method = Beamforming(conf, wave_info=wave_info)
+        from src.sss.beamformer import SparseBeamforming
+        ss_method = SparseBeamforming(conf, wave_info=wave_info)
     else:
         logger.error('Not define mode of sound source separation method.')
     

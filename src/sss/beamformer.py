@@ -14,8 +14,9 @@ from src.format.output import AudioOutputStruct
 from utils import get_logger, calc_circumference_locations
 logger = get_logger()
 
-class Beamforming():
+class SparseBeamforming():
     """
+    音声のスパース性 + ビームフォーマ
     マイクロホンアレイが2次元平面のある円周上に等間隔で並んでいるものとする。
     """
     def __init__(self, conf, wave_info:AudioOutputStruct) -> None:
