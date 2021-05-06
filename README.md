@@ -29,3 +29,11 @@ midで、使用するマイクロホンのIndexを選択する。
 python ./app/record.py -f <file_name> -mid <mic_id> -t <sec>
 python ./app/record.py -f ./data/test.wav -mid 1 -t 5
 ```
+
+# 音源分離
+
+```
+python ./app/separation.py -f <混合音ファイル> -o <出力ディレクトリ> -m <音源分離のモード> -d <分離方向1> <分離方向2...>
+```
+
+マイク位置と仮想的な音源位置は、```conf/audio```の設定ファイルに記載。

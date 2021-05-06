@@ -10,13 +10,8 @@ if module_path not in sys.path:
     sys.path.append(str(module_path))
 
 from src.audio.processing import WaveProcessing
-from src.sss.microphone_array import MicrophoneArray
-from src.sss.localization import Localization
-from src.sss.beamformer import beamformer
 
-from src.display.plot import plot_mic_locations, plot_ss_locations, plot_spectrogram
-
-from utils import get_logger, wave_path_check, Config, calc_circumference_locations
+from utils import get_logger, wave_path_check, Config
 logger = get_logger()
 
 parser = argparse.ArgumentParser(description='Audio record')
@@ -27,6 +22,7 @@ parser.add_argument('-o', '--output_dir', default='./data', help='audio output d
 parser.add_argument('-m', '--mode', default=0, type=int, help='sound source sep mode')
 parser.add_argument('-d', '--dirs', nargs="*", type=int, help="sound source directions (azimuth)")
 parser.add_argument('--plot', action='store_true', help="plot")
+
 def main():
     args = parser.parse_args()
     conf = Config.get_cnf()
@@ -48,8 +44,7 @@ def main():
         logger.error(f"fail record... by args setting.")
         sys.exit(-1)
     wave_proc = WaveProcessing()
-    mic_proc = MicrophoneArray()
-    loc_proc = Localization()
+    
 
     # 音情報の読み込み
     data, wave_info = wave_proc.read_wav(file_path)
@@ -60,21 +55,17 @@ def main():
     # 周波数情報に変換
     stft_conf = audio_conf.stft
     freqs, stft_times, stft_data = WaveProcessing.stft(data, wave_info.sample_rate, stft_conf.window, stft_conf.nperseg, stft_conf.noverlap)
-
-    # 音源方向推定
-    ## マイクの設定
-    mic_dirs, mic_locations = mic_proc.get_locations(audio_conf.mic.distance, audio_conf.mic.num)
-
-    ## 仮想音源の設定
-    vss_dirs, vss_locations = calc_circumference_locations(audio_conf.ss.distance, audio_conf.ss.interval_dir)
-    steering_vectors = mic_proc.calc_virtual_steering_vectors(mic_locations, vss_locations, freqs)
-
-    localization_ss_dirs, spectrogram = loc_proc.beamforming(stft_data, steering_vectors)
     
-    ## 各周波数ごとに最大方向を割り当て
-    sound_source_mask = loc_proc.assign_locations(localization_ss_dirs, ss_azimuth, vss_dirs, audio_conf.assign_dir)
     # 音源分離
-    sep_sound = beamformer(stft_data, sound_source_mask)
+    if sss_mode == 0:
+        # ビームフォーマ
+        from src.sss.beamformer import Beamforming
+        ss_method = Beamforming(conf, wave_info=wave_info)
+    else:
+        logger.error('Not define mode of sound source separation method.')
+    
+    sep_sound = ss_method(stft_data, ss_azimuth)
+    
     # 時間領域情報に戻す
     for s in range(len(ss_azimuth)):
         _, wave_data = WaveProcessing.istft(sep_sound[0, s, ...], wave_info.sample_rate, stft_conf.window, stft_conf.nperseg, stft_conf.noverlap)
@@ -82,9 +73,11 @@ def main():
         wave_proc.list_to_wave(f"{output_dir}/sep_{s}.wav", wave_data.astype(np.int16).tolist(), 1, wave_info.sample_rate, wave_info.sample_width)
 
     if do_plot:
-        plot_mic_locations(mic_locations[:2])
-        plot_ss_locations(vss_locations[:2])
-        plot_spectrogram(spectrogram, vss_dirs[:, 1], stft_times)
+        from src.display.plot import plot_mic_locations, plot_ss_locations, plot_spectrogram
+        if sss_mode == 0:
+            plot_mic_locations(ss_method.mic_locations[:2])
+            plot_ss_locations(ss_method.vss_locations[:2])
+            plot_spectrogram(ss_method.spectrogram, ss_method.vss_dirs[:, 1], stft_times)
 
     
 

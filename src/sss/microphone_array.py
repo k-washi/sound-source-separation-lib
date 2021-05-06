@@ -20,8 +20,9 @@ class MicrophoneArray():
     """
     def __init__(self) -> None:
         pass
-
-    def get_locations(self, r, mic_num):
+    
+    @staticmethod
+    def get_locations(r, mic_num):
         """
         マイクを配置
         r: 中心からの距離[m]
@@ -34,7 +35,8 @@ class MicrophoneArray():
 
         return mic_dirs, mic_alignments
     
-    def calc_virtual_steering_vectors(self, mic_locations, ss_locations, freqs, sound_speed=340, is_use_far=False):
+    @staticmethod
+    def calc_virtual_steering_vectors(mic_locations, ss_locations, freqs, sound_speed=340, is_use_far=False):
         """
         mic_locations: 3 x M
         ss_locations: 3 x Ns
@@ -43,7 +45,6 @@ class MicrophoneArray():
         is_use_far: Farを使うかどうか
         """
         n_channels = mic_locations.shape[0]
-        n_source = ss_locations.shape[0]
 
         if is_use_far:
             # 音源位置を正規化
